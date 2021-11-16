@@ -80,7 +80,7 @@ def run_experiment(config_file):
     p.add_reporter(neat.StdOutReporter(True))
     stats = neat.StatisticsReporter()
     p.add_reporter(stats)
-    p.add_reporter(neat.Checkpointer(5, filename_prefix='Chapter3/out/neat-checkpoint-'))
+    p.add_reporter(neat.Checkpointer(5, filename_prefix='out/neat-checkpoint-'))
 
     # Run for up to 300 generations.
     best_genome = p.run(eval_genomes, 300)
