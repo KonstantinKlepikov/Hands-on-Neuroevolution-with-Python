@@ -1,29 +1,8 @@
-#Copyright (c) 2007-2011, cesar.gomes and mirrorballu2
-#Copyright (c) 2015-2017, CodeReclaimers, LLC
-#
-#Redistribution and use in source and binary forms, with or without modification, are permitted provided that the
-#following conditions are met:
-#
-#1. Redistributions of source code must retain the above copyright notice, this list of conditions and the following
-#disclaimer.
-#
-#2. Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following
-#disclaimer in the documentation and/or other materials provided with the distribution.
-#
-#3. Neither the name of the copyright holder nor the names of its contributors may be used to endorse or promote products
-#derived from this software without specific prior written permission.
-#
-#THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES,
-#INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-#DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-#SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-#LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-#CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-#SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 from __future__ import print_function
 
 import copy
 import warnings
+from typing import Optional
 
 import graphviz
 import matplotlib.pyplot as plt
@@ -31,9 +10,12 @@ import numpy as np
 
 
 def plot_stats(statistics, ylog=False, view=False, filename='avg_fitness.svg'):
-    """ Plots the population's average and best fitness. """
+    """Plots the population's average and best fitness."""
     if plt is None:
-        warnings.warn("This display is not available due to a missing optional dependency (matplotlib)")
+        warnings.warn(  # noqa: B028
+            'This display is not available due to a missing optional dependency'
+            ' (matplotlib)'
+        )
         return
 
     generation = range(len(statistics.most_fit_genomes))
@@ -41,16 +23,16 @@ def plot_stats(statistics, ylog=False, view=False, filename='avg_fitness.svg'):
     avg_fitness = np.array(statistics.get_fitness_mean())
     stdev_fitness = np.array(statistics.get_fitness_stdev())
 
-    plt.plot(generation, avg_fitness, 'b-', label="average")
-    plt.plot(generation, avg_fitness - stdev_fitness, 'g-.', label="-1 sd")
-    plt.plot(generation, avg_fitness + stdev_fitness, 'g-.', label="+1 sd")
-    plt.plot(generation, best_fitness, 'r-', label="best")
+    plt.plot(generation, avg_fitness, 'b-', label='average')
+    plt.plot(generation, avg_fitness - stdev_fitness, 'g-.', label='-1 sd')
+    plt.plot(generation, avg_fitness + stdev_fitness, 'g-.', label='+1 sd')
+    plt.plot(generation, best_fitness, 'r-', label='best')
 
     plt.title("Population's average and best fitness")
-    plt.xlabel("Generations")
-    plt.ylabel("Fitness")
+    plt.xlabel('Generations')
+    plt.ylabel('Fitness')
     plt.grid()
-    plt.legend(loc="best")
+    plt.legend(loc='best')
     if ylog:
         plt.gca().set_yscale('symlog')
 
@@ -60,10 +42,14 @@ def plot_stats(statistics, ylog=False, view=False, filename='avg_fitness.svg'):
 
     plt.close()
 
-def plot_species(statistics, view=False, filename='speciation.svg'):
-    """ Visualizes speciation throughout evolution. """
+
+def plot_species(statistics, view=False, filename='speciation.svg') -> None:
+    """Visualizes speciation throughout evolution."""
     if plt is None:
-        warnings.warn("This display is not available due to a missing optional dependency (matplotlib)")
+        warnings.warn(  # noqa: B028
+            'This display is not available due to a missing optional dependency'
+            ' (matplotlib)'
+        )
         return
 
     species_sizes = statistics.get_species_sizes()
@@ -73,9 +59,9 @@ def plot_species(statistics, view=False, filename='speciation.svg'):
     fig, ax = plt.subplots()
     ax.stackplot(range(num_generations), *curves)
 
-    plt.title("Speciation")
-    plt.ylabel("Size per Species")
-    plt.xlabel("Generations")
+    plt.title('Speciation')
+    plt.ylabel('Size per Species')
+    plt.xlabel('Generations')
 
     plt.savefig(filename)
 
@@ -85,13 +71,26 @@ def plot_species(statistics, view=False, filename='speciation.svg'):
     plt.close()
 
 
-def draw_net(config, genome, view=False, filename=None, directory=None, node_names=None, show_disabled=True, prune_unused=False,
-             node_colors=None, fmt='svg'):
-    """ Receives a genome and draws a neural network with arbitrary topology. """
+def draw_net(  # noqa: C901
+    config,
+    genome,
+    view=False,
+    filename=None,
+    directory=None,
+    node_names=None,
+    show_disabled=True,
+    prune_unused=False,
+    node_colors=None,
+    fmt='svg',
+) -> Optional[graphviz.Digraph]:
+    """Receives a genome and draws a neural network with arbitrary topology."""
     # Attributes for network nodes.
     if graphviz is None:
-        warnings.warn("This display is not available due to a missing optional dependency (graphviz)")
-        return
+        warnings.warn(  # noqa: B028
+            'This display is not available due to a missing optional dependency'
+            ' (graphviz)'
+        )
+        return None
 
     if node_names is None:
         node_names = {}
@@ -103,11 +102,7 @@ def draw_net(config, genome, view=False, filename=None, directory=None, node_nam
 
     assert type(node_colors) is dict
 
-    node_attrs = {
-        'shape': 'circle',
-        'fontsize': '9',
-        'height': '0.2',
-        'width': '0.2'}
+    node_attrs = {'shape': 'circle', 'fontsize': '9', 'height': '0.2', 'width': '0.2'}
 
     dot = graphviz.Digraph(format=fmt, node_attr=node_attrs)
 
@@ -115,7 +110,11 @@ def draw_net(config, genome, view=False, filename=None, directory=None, node_nam
     for k in config.genome_config.input_keys:
         inputs.add(k)
         name = node_names.get(k, str(k))
-        input_attrs = {'style': 'filled', 'shape': 'box', 'fillcolor': node_colors.get(k, 'lightgray')}
+        input_attrs = {
+            'style': 'filled',
+            'shape': 'box',
+            'fillcolor': node_colors.get(k, 'lightgray'),
+        }
         dot.node(name, _attributes=input_attrs)
 
     outputs = set()
@@ -148,13 +147,12 @@ def draw_net(config, genome, view=False, filename=None, directory=None, node_nam
         if n in inputs or n in outputs:
             continue
 
-        attrs = {'style': 'filled',
-                 'fillcolor': node_colors.get(n, 'white')}
+        attrs = {'style': 'filled', 'fillcolor': node_colors.get(n, 'white')}
         dot.node(str(n), _attributes=attrs)
 
     for cg in genome.connections.values():
         if cg.enabled or show_disabled:
-            #if cg.input not in used_nodes or cg.output not in used_nodes:
+            # if cg.input not in used_nodes or cg.output not in used_nodes:
             #    continue
             input, output = cg.key
             a = node_names.get(input, str(input))
@@ -162,7 +160,9 @@ def draw_net(config, genome, view=False, filename=None, directory=None, node_nam
             style = 'solid' if cg.enabled else 'dotted'
             color = 'green' if cg.weight > 0 else 'red'
             width = str(0.1 + abs(cg.weight / 5.0))
-            dot.edge(a, b, _attributes={'style': style, 'color': color, 'penwidth': width})
+            dot.edge(
+                a, b, _attributes={'style': style, 'color': color, 'penwidth': width}
+            )
 
     dot.render(filename, directory, view=view)
 

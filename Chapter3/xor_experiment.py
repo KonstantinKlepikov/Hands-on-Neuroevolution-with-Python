@@ -1,14 +1,12 @@
-#
-# This file provides source code of XOR experiment using on NEAT-Python library
-#
-
-# The Python standard library import
+#################################################################################
+# This file provides source code of XOR experiment using on NEAT-Python library #
+#################################################################################
 import os
 import shutil
-# The NEAT-Python library imports
+
 import neat
-# The helper used to visualize experiment results
 import visualize
+from neat.nn import FeedForwardNetwork
 
 # The current working directory
 local_dir = os.path.dirname(__file__)
@@ -16,17 +14,18 @@ local_dir = os.path.dirname(__file__)
 out_dir = os.path.join(local_dir, 'out')
 
 # The XOR inputs and expected corresponding outputs for fitness evaluation
-xor_inputs  = [(0.0, 0.0), (0.0, 1.0), (1.0, 0.0), (1.0, 1.0)]
-xor_outputs = [   (0.0,),     (1.0,),     (1.0,),     (0.0,)]
+xor_inputs = [(0.0, 0.0), (0.0, 1.0), (1.0, 0.0), (1.0, 1.0)]
+xor_outputs = [(0.0,), (1.0,), (1.0,), (0.0,)]
 
-def eval_fitness(net):
+
+def eval_fitness(net: FeedForwardNetwork) -> float:
     """
-    Evaluates fitness of the genome that was used to generate 
+    Evaluates fitness of the genome that was used to generate
     provided net
     Arguments:
         net: The feed-forward neural network generated from genome
     Returns:
-        The fitness score - the higher score the means the better 
+        The fitness score - the higher score the means the better
         fit organism. Maximal score: 16.0
     """
     error_sum = 0.0
@@ -34,44 +33,49 @@ def eval_fitness(net):
         output = net.activate(xi)
         error_sum += abs(output[0] - xo[0])
     # Calculate amplified fitness
-    fitness = (4 - error_sum) ** 2
-    return fitness
+    return (4 - error_sum) ** 2
 
-def eval_genomes(genomes, config):
+
+def eval_genomes(genomes, config) -> None:
     """
-    The function to evaluate the fitness of each genome in 
-    the genomes list. 
-    The provided configuration is used to create feed-forward 
+    The function to evaluate the fitness of each genome in
+    the genomes list.
+    The provided configuration is used to create feed-forward
     neural network from each genome and after that created
     the neural network evaluated in its ability to solve
     XOR problem. As a result of this function execution, the
     the fitness score of each genome updated to the newly
     evaluated one.
     Arguments:
-        genomes: The list of genomes from population in the 
+        genomes: The list of genomes from population in the
                 current generation
         config: The configuration settings with algorithm
                 hyper-parameters
     """
-    for genome_id, genome in genomes:
+    for _genome_id, genome in genomes:
         genome.fitness = 4.0
         net = neat.nn.FeedForwardNetwork.create(genome, config)
         genome.fitness = eval_fitness(net)
 
-def run_experiment(config_file):
+
+def run_experiment(config_file: str) -> None:
     """
-    The function to run XOR experiment against hyper-parameters 
+    The function to run XOR experiment against hyper-parameters
     defined in the provided configuration file.
     The winner genome will be rendered as a graph as well as the
     important statistics of neuroevolution process execution.
     Arguments:
-        config_file: the path to the file with experiment 
+        config_file: the path to the file with experiment
                     configuration
     """
     # Load configuration.
-    config = neat.Config(neat.DefaultGenome, neat.DefaultReproduction,
-                         neat.DefaultSpeciesSet, neat.DefaultStagnation,
-                         config_file)
+    config = neat.Config(
+        neat.DefaultGenome,
+        neat.DefaultReproduction,
+        neat.DefaultSpeciesSet,
+        neat.DefaultStagnation,
+        config_file,
+    )
 
     # Create the population, which is the top-level object for a NEAT run.
     p = neat.Population(config)
@@ -93,22 +97,29 @@ def run_experiment(config_file):
     net = neat.nn.FeedForwardNetwork.create(best_genome, config)
     for xi, xo in zip(xor_inputs, xor_outputs):
         output = net.activate(xi)
-        print("input {!r}, expected output {!r}, got {!r}".format(xi, xo, output))
+        print('input {!r}, expected output {!r}, got {!r}'.format(xi, xo, output))
 
     # Check if the best genome is an adequate XOR solver
     best_genome_fitness = eval_fitness(net)
     if best_genome_fitness > config.fitness_threshold:
-        print("\n\nSUCCESS: The XOR problem solver found!!!")
+        print('\n\nSUCCESS: The XOR problem solver found!!!')
     else:
-        print("\n\nFAILURE: Failed to find XOR problem solver!!!")
+        print('\n\nFAILURE: Failed to find XOR problem solver!!!')
 
     # Visualize the experiment results
-    node_names = {-1:'A', -2: 'B', 0:'A XOR B'}
-    visualize.draw_net(config, best_genome, True, node_names=node_names, directory=out_dir)
-    visualize.plot_stats(stats, ylog=False, view=True, filename=os.path.join(out_dir, 'avg_fitness.svg'))
-    visualize.plot_species(stats, view=True, filename=os.path.join(out_dir, 'speciation.svg'))
+    node_names = {-1: 'A', -2: 'B', 0: 'A XOR B'}
+    visualize.draw_net(
+        config, best_genome, True, node_names=node_names, directory=out_dir
+    )
+    visualize.plot_stats(
+        stats, ylog=False, view=True, filename=os.path.join(out_dir, 'avg_fitness.svg')
+    )
+    visualize.plot_species(
+        stats, view=True, filename=os.path.join(out_dir, 'speciation.svg')
+    )
 
-def clean_output():
+
+def clean_output() -> None:
     if os.path.isdir(out_dir):
         # remove files from previous run
         shutil.rmtree(out_dir)

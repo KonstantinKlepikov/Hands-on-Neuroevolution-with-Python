@@ -117,3 +117,7 @@ venv.bak/
 
 # MultiNEAT
 /MultiNEAT
+/deep-neuroevolution
+
+# system
+poetry.toml
