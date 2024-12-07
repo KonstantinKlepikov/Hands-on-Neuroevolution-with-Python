@@ -1,8 +1,9 @@
 #
 # The collection of utilities
-# 
+#
 import os
 import shutil
+
 
 def clear_output(out_dir):
     """
